@@ -4,55 +4,115 @@ import Players from "./components/playersRow/Players.jsx";
 import Gameboard from "./components/Gameboard.jsx";
 import { useState } from "react";
 import Log from "./components/Log.jsx";
+import GameOver from "./components/GameOver.jsx";
+import winnAl from "./WinningAl.jsx";
 
+const INITIAL_GAME_BOARD = [
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null]
+    
+];
 
-function App() {
-  const [playerTurn, setPlayerTurn] = useState("X");
- const [gameTurn, setGameTurn] = useState([]);
+const PLAYERS = ["X", "O"];
+let winner;
+let IsDraw = false;
 
-  function handleSelectedSquare( rowIndex, collumeIndex)
-  {
-    setPlayerTurn((currentTurn)=> currentTurn === "X" ? "O" : "X");
-
-
-    setGameTurn((prevGameGrid)=>
-    {
-      let currentPlayerSymbol = "X"; // better than using the 
-      if ( prevGameGrid[0] &&prevGameGrid[0].nowActivePlayer == "X")
+function DerivedActivePlayer(gameTurn) {
+   let currentPlayerSymbol = "X"; // better than using the other state
+      if ( gameTurn[0] && gameTurn[0].playerSymbol == "X")
       {// could be also prevGameGrid.lemgth > 0 &&g
         currentPlayerSymbol = "O";
       }
-        // the [0] points to the first thing in the Grid which the object of the turn that just occured
-        // the nowActivePlayer points to the nowActivePlayer attribute in that object
-        // + for all of the previous turns we do the spread opreated so they won't be pointers to something but an actual place in memory where the value is stored)
-        // + I can't just use the active player value becaue it might not present the latest state
-     
-      const GameGrtid = [
+      return currentPlayerSymbol;
+}
+
+
+function DerivedGameBoard(turnsMade) {
+  let gameBoard = INITIAL_GAME_BOARD.map(row => [...row]);
+    for (const turn of turnsMade) { // if GameTurn is null the for just won't execute
+        const {positionPlayed, playerSymbol} = turn;
+        const {row, collume} = positionPlayed;
+        gameBoard[row][collume] = playerSymbol;
+    }
+    return gameBoard;
+}
+
+
+
+function App() {
+ const [gameTurn, setGameTurn] = useState([]);
+const [players, setPlayers] = useState({
+      X: 'Player 1',
+      O: 'Player 2'
+});
+
+
+
+ const currentPlayerSymbol = DerivedActivePlayer(gameTurn);
+ const gameBoard = DerivedGameBoard(gameTurn);
+
+
+
+
+  function handleSelectedSquare( rowIndex, collumeIndex)
+  {
+    setGameTurn((prevGameGrid)=>
+    {
+      
+      const currentPlayerSymbol = DerivedActivePlayer(prevGameGrid);
+      const GameGrid = [
         {
         positionPlayed: {row: rowIndex, collume: collumeIndex},
-        nowActivePlayer: currentPlayerSymbol,
+        playerSymbol: currentPlayerSymbol,
 
       },
       ...prevGameGrid];
 
-      return GameGrtid;
-    });
-    
-   //   return playerTurn,    didn't try but i THINK it doesn't work, cause even if the setPlayerTurn is called with the most current variable, it still updates the state 
-   // only after the entire function is done
+
+       const boardForCheck =  DerivedGameBoard(GameGrid);
+     IsDraw = boardForCheck.every(row => row.every(cell => cell !== null)) && !winner;
+        console.log(IsDraw);
+
+  if (winnAl([rowIndex, collumeIndex], boardForCheck)) {
+     winner = players[currentPlayerSymbol];
+    console.log("Winner:", winner);
   }
 
+      return GameGrid;
+    });
+    
+  
+  }
 
+function handleRestart() {
+  setGameTurn([]);
+  winner = null;
+  IsDraw = false;
+}
+
+function handleNameChange(symbol, newName) {
+  setPlayers(prevPlayers => {
+    return {
+      ...prevPlayers, // overwrite only the new name
+      [symbol]: newName
+    };
+  });
+}
 
   return (
 <main>
 <div id="">
 
- <Players whosTurn={playerTurn} />
-
-<Gameboard handleSelectedSymbole={handleSelectedSquare} turnsMadeArray={gameTurn}/>
+ <Players whosTurn={currentPlayerSymbol} handleNameChange={handleNameChange}  />
+ {(winner || IsDraw) && <GameOver winner={winner} onRestart={handleRestart} />}
+<Gameboard handleSelectedSymbol={handleSelectedSquare} board={gameBoard}/>
 </div>
-<Log />
+<Log turnsMadeArray={gameTurn} />
 </main>
  )
 
