@@ -1,121 +1,128 @@
+import { useState } from 'react';
 import Players from "./components/playersRow/Players.jsx";
-//import Gameboard from "./components/gameboard/Gameboard.jsx";
-//import Log from "./components/log/Log.jsx";
 import Gameboard from "./components/Gameboard.jsx";
-import { useState } from "react";
 import Log from "./components/Log.jsx";
 import GameOver from "./components/GameOver.jsx";
 import winnAl from "./WinningAl.jsx";
 
 const INITIAL_GAME_BOARD = [
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null]
-    
+  [null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null],
 ];
 
 const PLAYERS = ["X", "O"];
-let winner;
-let IsDraw = false;
 
 function DerivedActivePlayer(gameTurn) {
-   let currentPlayerSymbol = "X"; // better than using the other state
-      if ( gameTurn[0] && gameTurn[0].playerSymbol == "X")
-      {// could be also prevGameGrid.lemgth > 0 &&g
-        currentPlayerSymbol = "O";
-      }
-      return currentPlayerSymbol;
+  let currentPlayerSymbol = "X";
+  if (gameTurn[0] && gameTurn[0].playerSymbol === "X") {
+    currentPlayerSymbol = "O";
+  }
+  return currentPlayerSymbol;
 }
-
 
 function DerivedGameBoard(turnsMade) {
   let gameBoard = INITIAL_GAME_BOARD.map(row => [...row]);
-    for (const turn of turnsMade) { // if GameTurn is null the for just won't execute
-        const {positionPlayed, playerSymbol} = turn;
-        const {row, collume} = positionPlayed;
-        gameBoard[row][collume] = playerSymbol;
-    }
-    return gameBoard;
+  for (const turn of turnsMade) {
+    const { positionPlayed, playerSymbol } = turn;
+    const { row, collume } = positionPlayed;
+    gameBoard[row][collume] = playerSymbol;
+  }
+  return gameBoard;
 }
 
-
-
 function App() {
- const [gameTurn, setGameTurn] = useState([]);
-const [players, setPlayers] = useState({
-      X: 'Player 1',
-      O: 'Player 2'
-});
+  const [gameTurn, setGameTurn] = useState([]);
+  const [players, setPlayers] = useState({ X: 'Player 1', O: 'Player 2' });
+  const [winner, setWinner] = useState(null);
+  const [isDraw, setIsDraw] = useState(false);
 
+  const currentPlayerSymbol = DerivedActivePlayer(gameTurn);
+  const gameBoard = DerivedGameBoard(gameTurn);
 
+  function handleSelectedSquare(rowIndex, collumeIndex) {
+    if (winner || isDraw) return;
 
- const currentPlayerSymbol = DerivedActivePlayer(gameTurn);
- const gameBoard = DerivedGameBoard(gameTurn);
-
-
-
-
-  function handleSelectedSquare( rowIndex, collumeIndex)
-  {
-    setGameTurn((prevGameGrid)=>
-    {
-      
+    setGameTurn((prevGameGrid) => {
       const currentPlayerSymbol = DerivedActivePlayer(prevGameGrid);
       const GameGrid = [
         {
-        positionPlayed: {row: rowIndex, collume: collumeIndex},
-        playerSymbol: currentPlayerSymbol,
-
-      },
-      ...prevGameGrid];
-
-
-       const boardForCheck =  DerivedGameBoard(GameGrid);
-     IsDraw = boardForCheck.every(row => row.every(cell => cell !== null)) && !winner;
-        console.log(IsDraw);
-
-  if (winnAl([rowIndex, collumeIndex], boardForCheck)) {
-     winner = players[currentPlayerSymbol];
-    console.log("Winner:", winner);
-  }
+          positionPlayed: { row: rowIndex, collume: collumeIndex },
+          playerSymbol: currentPlayerSymbol,
+        },
+        ...prevGameGrid
+      ];
+      
+      const boardForCheck = DerivedGameBoard(GameGrid);
+      
+      if (winnAl([rowIndex, collumeIndex], boardForCheck)) {
+        setWinner(players[currentPlayerSymbol]);
+      } else if (boardForCheck.every(row => row.every(cell => cell !== null))) {
+        setIsDraw(true);
+      }
 
       return GameGrid;
     });
-    
-  
   }
 
-function handleRestart() {
-  setGameTurn([]);
-  winner = null;
-  IsDraw = false;
-}
+  function handleRestart() {
+    setGameTurn([]);
+    setWinner(null);
+    setIsDraw(false);
+  }
 
-function handleNameChange(symbol, newName) {
-  setPlayers(prevPlayers => {
-    return {
-      ...prevPlayers, // overwrite only the new name
-      [symbol]: newName
-    };
-  });
-}
+  function handleNameChange(symbol, newName) {
+    setPlayers(prevPlayers => {
+      return {
+        ...prevPlayers,
+        [symbol]: newName
+      };
+    });
+  }
 
   return (
-<main>
-<div id="">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 py-8 px-4">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-500 mb-2">
+            Connect Four
+          </h1>
+          <p className="text-gray-300 text-lg">First to connect 4 wins!</p>
+        </div>
 
- <Players whosTurn={currentPlayerSymbol} handleNameChange={handleNameChange}  />
- {(winner || IsDraw) && <GameOver winner={winner} onRestart={handleRestart} />}
-<Gameboard handleSelectedSymbol={handleSelectedSquare} board={gameBoard}/>
-</div>
-<Log turnsMadeArray={gameTurn} />
-</main>
- )
+        {/* Players */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <Players 
+            whosTurn={currentPlayerSymbol} 
+            handleNameChange={handleNameChange}
+            players={players}
+          />
+        </div>
 
+        {/* Game Board */}
+        <div className="flex justify-center mb-8">
+          <Gameboard
+            handleSelectedSymbol={handleSelectedSquare}
+            board={gameBoard}
+            currentPlayer={currentPlayerSymbol}
+          />
+        </div>
+
+        {/* Move Log */}
+        <div className="max-w-md mx-auto bg-white/5 backdrop-blur-sm rounded-2xl p-6">
+          <h2 className="text-2xl font-bold text-white mb-4 text-center">Move History</h2>
+          <Log turnsMadeArray={gameTurn} />
+        </div>
+
+        {/* Game Over Modal */}
+        {(winner || isDraw) && <GameOver winner={winner} onRestart={handleRestart} />}
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;

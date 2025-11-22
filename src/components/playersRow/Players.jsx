@@ -1,18 +1,20 @@
 import Player from "./Player";
 
-
-export default function Players({whosTurn, handleNameChange}) {
-  
-  
-
-
-
-    return (
-      <div id="game-container">
-        <ol id="players" className="highlight-player"> 
-         <Player initialName="Player 1" symbol="X" isTurn={"X" === whosTurn } onNameChange={handleNameChange} />
-         <Player initialName="Player 2" symbol="O" isTurn={"O" === whosTurn }  onNameChange={handleNameChange}/>
-        </ol>
-      </div>
-    )
+export default function Players({ whosTurn, handleNameChange, players }) {
+  return (
+    <>
+      <Player
+        initialName={players.X}
+        symbol="X"
+        isTurn={whosTurn === "X"}
+        onNameChange={handleNameChange}
+      />
+      <Player
+        initialName={players.O}
+        symbol="O"
+        isTurn={whosTurn === "O"}
+        onNameChange={handleNameChange}
+      />
+    </>
+  );
 }

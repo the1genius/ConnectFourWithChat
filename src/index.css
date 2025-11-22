@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Caprasimo&family=Roboto+Slab:wght@400;700&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 * {
   box-sizing: border-box;
 }
@@ -17,8 +21,9 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+
 body {
-  background: radial-gradient(
+  /*background: radial-gradient(
       circle at top,
       rgba(241, 210, 70, 0.98),
       rgba(250, 176, 103, 0.87)
@@ -26,7 +31,7 @@ body {
     url('bg-pattern-dark.png');
   background-repeat: repeat;
   background-size: 100% 100%, 30% 30%, 100% 100%;
-  min-height: 110rem;
+  min-height: 110rem; */
 }
 
 header {
@@ -120,6 +125,7 @@ h1 {
   text-overflow: ellipsis;
   text-align: center;
 }
+
 
 .player input {
   font: inherit;
